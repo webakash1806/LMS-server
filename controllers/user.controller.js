@@ -55,7 +55,6 @@ const register = async (req, res, next) => {
                 gravity: 'faces',
                 crop: 'fill',
             })
-            console.log(result)
             if (result) {
                 user.avatar.publicId = result.public_id
                 user.avatar.secure_url = result.secure_url
@@ -268,6 +267,55 @@ const changePassword = async (req, res, next) => {
 
 }
 
+
+const updateProfile = async (req, res, next) => {
+    const { fullName } = req.body
+    const { id } = req.user
+
+    const user = await User.findById(id)
+
+    if (!user) {
+        return next(new AppError('User does not exist', 400))
+    }
+
+
+    if (fullName) {
+        user.fullName = await fullName
+    }
+
+
+
+    if (req.file) {
+        await cloudinary.v2.uploader.destroy(user.avatar.publicId)
+        try {
+            const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                folder: 'lms',
+                width: 250,
+                height: 250,
+                gravity: 'faces',
+                crop: 'fill',
+            })
+            if (result) {
+                user.avatar.publicId = result.public_id
+                user.avatar.secure_url = result.secure_url
+
+                fs.rm(`uploads/${req.file.filename}`)
+            }
+        }
+        catch (err) {
+            return next(new AppError('File can not get uploaded', 500))
+        }
+    }
+
+    await user.save()
+
+    res.status(200).json({
+        success: true,
+        message: 'User Detail updated successfully'
+    })
+
+}
+
 export {
     register,
     login,
@@ -275,5 +323,6 @@ export {
     profile,
     forgotPassword,
     resetPassword,
-    changePassword
+    changePassword,
+    updateProfile
 }
