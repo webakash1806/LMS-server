@@ -1,9 +1,10 @@
 import { Router } from 'express'
 import { getCourseLists, getLecturesList } from '../controllers/course.controller.js';
+import { isLoggedIn } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-router.get('/', getCourseLists)
-router.get('/:id', getLecturesList)
+router.route('/').get(getCourseLists)
+router.route('/:id').get(isLoggedIn, getLecturesList)
 
 export default router
