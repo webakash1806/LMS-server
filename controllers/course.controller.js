@@ -39,13 +39,7 @@ const getLecturesList = async (req, res, next) => {
 
 const createCourse = async (req, res, next) => {
 
-    const { title, description, category, createdBy, numberOfLecture } = req.body
-
-    console.log(title)
-    console.log(description)
-    console.log(category)
-    console.log(createdBy)
-    console.log(numberOfLecture)
+    const { title, description, category, createdBy, numberOfLecture, thumbnail } = req.body
 
     if (!title || !description || !category || !createdBy || !numberOfLecture) {
         return next(new AppError('All Fields are required', 400))
@@ -57,27 +51,27 @@ const createCourse = async (req, res, next) => {
         category,
         createdBy,
         numberOfLecture,
-        // thumbnail: {
-        //     public_id: '',
-        //     secure_url: '',
-        // }
+        thumbnail: {
+            public_id: '',
+            secure_url: '',
+        }
     })
 
     if (!course) {
         return next(new AppError('Course is not created', 500))
     }
 
-    // if (req.file) {
-    //     const result = await cloudinary.v2.uploader.upload(req.file.path, {
-    //         folder: 'lms'
-    //     })
+    if (req.file) {
+        const result = await cloudinary.v2.uploader.upload(req.file.path, {
+            folder: 'lms'
+        })
 
-    //     if (result) {
-    //         course.thumbnail.public_id = result.public_id
-    //         course.thumbnail.secure_url = result.secure_url
-    //     }
-    //     fs.rm(`uploads/${req.file.filename}`)
-    // }
+        if (result) {
+            course.thumbnail.public_id = result.public_id
+            course.thumbnail.secure_url = result.secure_url
+        }
+        fs.rm(`uploads/${req.file.filename}`)
+    }
 
     await course.save()
 
