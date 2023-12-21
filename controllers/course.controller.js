@@ -81,17 +81,43 @@ const createCourse = async (req, res, next) => {
     })
 }
 
-const updateCourse = (req, res, next) => {
+const updateCourse = async (req, res, next) => {
+    const { id } = req.params
+
+    const course = await Course.findByIdAndUpdate(
+        id,
+        {
+            $set: req.body
+        },
+        { runValidators: true }
+    )
+
+    if (!course) {
+        return next(new AppError('No Course Found', 400))
+    }
+
+    await course.save()
+
     res.status(200).json({
         success: true,
-        message: "Lectures List",
+        message: "Course updated successfully",
     })
 }
 
-const deleteCourse = (req, res, next) => {
+const deleteCourse = async (req, res, next) => {
+    const { id } = req.params
+
+    const course = await Course.findById(id)
+
+    if (!course) {
+        return next(new AppError('No Course Found', 400))
+    }
+
+    await Course.findByIdAndDelete(id)
+
     res.status(200).json({
         success: true,
-        message: "Lectures List",
+        message: "Course deleted successfully"
     })
 }
 

@@ -8,8 +8,8 @@ const router = Router();
 
 router.route('/').get(getCourseLists)
 router.route('/:id').get(isLoggedIn, getLecturesList)
-router.post('/create', upload.single("thumbnail"), createCourse)
-router.put('/update/:id', updateCourse)
-router.delete('/remove/:id', deleteCourse)
+router.post('/create', upload.single("thumbnail"), isLoggedIn, createCourse)
+router.put('/update/:id', isLoggedIn, updateCourse)
+router.delete('/remove/:id', isLoggedIn, deleteCourse)
 
 export default router
