@@ -15,4 +15,15 @@ const isLoggedIn = async (req, res, next) => {
     next()
 }
 
-export { isLoggedIn }
+const authorizedUser = (...role) => async (req, res, next) => {
+    const userRole = await req.user.role
+    console.log(userRole)
+    console.log(...role)
+    if (!role.includes(userRole)) {
+        return next(new AppError('Unauthenticated! You dont have permission to change this', 404))
+    }
+
+    next()
+}
+
+export { isLoggedIn, authorizedUser }
