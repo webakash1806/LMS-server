@@ -239,7 +239,8 @@ const deleteLecture = async (req, res, next) => {
         return next(new AppError('No Lecture Found', 400))
     }
 
-    await course.deleteOne(course.lectures[lectureIndex])
+    course.lectures.pop(course.lectures[lectureIndex])
+    course.numberOfLecture = course.lectures.length
     await course.save()
     res.status(200).json({
         status: true,
