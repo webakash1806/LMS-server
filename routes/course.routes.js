@@ -23,7 +23,7 @@ router.route('/:id').get(isLoggedIn, getLecturesList)
 router.post('/create', upload.single("thumbnail"), isLoggedIn, authorizedUser("ADMIN"), createCourse)
 
 
-router.put('/update/:id', isLoggedIn, authorizedUser("ADMIN"), updateCourse)
+router.put('/update/:id', upload.single("thumbnail"), isLoggedIn, authorizedUser("ADMIN"), updateCourse)
 
 router.delete('/remove/:id', isLoggedIn, authorizedUser("ADMIN"), deleteCourse)
 

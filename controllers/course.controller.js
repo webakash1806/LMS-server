@@ -4,169 +4,208 @@ import cloudinary from 'cloudinary'
 import fs from 'fs/promises'
 
 const getCourseLists = async (req, res, next) => {
-    const course = await Course.find({}).select('-lectures')
-
-
     try {
+        const course = await Course.find({}).select('-lectures')
+
+        if (!course) {
+            return next(new AppError('No Course Found', 400))
+        }
+
         res.status(200).json({
             success: true,
             message: "Course List",
             course
         })
     } catch (e) {
-        console.log(e)
+        return next(new AppError(e.message + 500))
     }
 }
 
 const getLecturesList = async (req, res, next) => {
-    const { id } = req.params
-
-    const course = await Course.findById(id)
-    if (!course) {
-        console.log("no course found")
-    }
-
     try {
+        const { id } = req.params
+
+        const course = await Course.findById(id)
+
+        if (!course) {
+            return next(new AppError('No Course Found', 400))
+        }
+
         res.status(200).json({
             success: true,
             message: "Lectures List",
             lectures: course.lectures
         })
     } catch (e) {
-        console.log(e)
+        return next(new AppError(e.message + 500))
     }
 }
 
 const createCourse = async (req, res, next) => {
 
-    const { title, description, category, createdBy, numberOfLecture, thumbnail } = req.body
+    try {
+        const { title, description, category, createdBy, thumbnail } = req.body
 
-    if (!title || !description || !category || !createdBy || !numberOfLecture) {
-        return next(new AppError('All Fields are required', 400))
-    }
-
-    const course = await Course.create({
-        title,
-        description,
-        category,
-        createdBy,
-        numberOfLecture,
-        thumbnail: {
-            public_id: '',
-            secure_url: '',
+        if (!title || !description || !category || !createdBy) {
+            return next(new AppError('All Fields are required', 400))
         }
-    })
 
-    if (!course) {
-        return next(new AppError('Course is not created', 500))
-    }
-
-    if (req.file) {
-        const result = await cloudinary.v2.uploader.upload(req.file.path, {
-            folder: 'lms'
+        const course = await Course.create({
+            title,
+            description,
+            category,
+            createdBy,
+            thumbnail: {
+                public_id: '',
+                secure_url: '',
+            }
         })
 
-        if (result) {
-            course.thumbnail.public_id = result.public_id
-            course.thumbnail.secure_url = result.secure_url
+        if (!course) {
+            return next(new AppError('Course is not created', 500))
         }
-        fs.rm(`uploads/${req.file.filename}`)
+
+        if (req.file) {
+            const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                folder: 'lms'
+            })
+
+            if (result) {
+                course.thumbnail.public_id = result.public_id
+                course.thumbnail.secure_url = result.secure_url
+            }
+            fs.rm(`uploads/${req.file.filename}`)
+        }
+
+        await course.save()
+
+        res.status(200).json({
+            success: true,
+            message: "Course created successfully",
+            course
+        })
+    } catch (e) {
+        return next(new AppError(e.message + 500))
     }
-
-    await course.save()
-
-    res.status(200).json({
-        success: true,
-        message: "Course created successfully"
-    })
 }
 
 const updateCourse = async (req, res, next) => {
-    const { id } = req.params
+    try {
+        const { id } = req.params
+        const course = await Course.findByIdAndUpdate(
+            id,
+            {
+                $set: req.body
+            },
+            { runValidators: true }
+        )
 
-    const course = await Course.findByIdAndUpdate(
-        id,
-        {
-            $set: req.body
-        },
-        { runValidators: true }
-    )
 
-    if (!course) {
-        return next(new AppError('No Course Found', 400))
+        if (!course) {
+            return next(new AppError('No Course Found', 400))
+        }
+
+
+
+        if (req.file) {
+            const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                folder: 'lms'
+            })
+
+            if (result) {
+                course.thumbnail.public_id = result.public_id
+                course.thumbnail.secure_url = result.secure_url
+            }
+            fs.rm(`uploads/${req.file.filename}`)
+        }
+
+        await course.save()
+
+        res.status(200).json({
+            success: true,
+            message: "Course updated successfully",
+            course
+        })
+    } catch (e) {
+        return next(new AppError(e.message + 500))
     }
-
-    await course.save()
-
-    res.status(200).json({
-        success: true,
-        message: "Course updated successfully",
-    })
 }
 
 const deleteCourse = async (req, res, next) => {
-    const { id } = req.params
+    try {
+        const { id } = req.params
 
-    const course = await Course.findById(id)
+        const course = await Course.findById(id)
 
-    if (!course) {
-        return next(new AppError('No Course Found', 400))
+        if (!course) {
+            return next(new AppError('No Course Found', 400))
+        }
+
+        await Course.findByIdAndDelete(id)
+
+        res.status(200).json({
+            success: true,
+            message: "Course deleted successfully"
+        })
+    } catch (e) {
+        return next(new AppError(e.message + 500))
     }
-
-    await Course.findByIdAndDelete(id)
-
-    res.status(200).json({
-        success: true,
-        message: "Course deleted successfully"
-    })
 }
 
 const createLecture = async (req, res, next) => {
 
-    const { id } = req.params
-    const { title, description, lecture } = req.body
+    try {
+        const { id } = req.params
+        const { title, description, lecture } = req.body
 
-    const course = await Course.findById(id)
+        const course = await Course.findById(id)
 
-    if (!course) {
-        return next(new AppError('No Course Found', 400))
-    }
-
-    if (!title, !description) {
-        return next(new AppError('All fields are required', 400))
-    }
-
-    const lectureData = {
-        title,
-        description,
-        lecture: {
-            public_id: '',
-            secure_url: '',
+        if (!course) {
+            return next(new AppError('No Course Found', 400))
         }
-    }
 
-    if (req.file) {
-        const result = await cloudinary.v2.uploader.upload(req.file.path, {
-            folder: 'lms'
+        if (!title, !description) {
+            return next(new AppError('All fields are required', 400))
+        }
+
+        const lectureData = {
+            title,
+            description,
+            lecture: {
+                public_id: '',
+                secure_url: '',
+            }
+        }
+
+        if (!lectureData) {
+            return next(new AppError('Failed to save lecture', 400))
+        }
+
+        if (req.file) {
+            const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                folder: 'lms'
+            })
+
+            if (result) {
+                lectureData.lecture.public_id = result.public_id
+                lectureData.lecture.secure_url = result.secure_url
+            }
+            fs.rm(`uploads/${req.file.filename}`)
+        }
+
+        course.lectures.push(lectureData)
+        course.numberOfLecture = course.lectures.length
+
+        await course.save()
+
+        res.status(200).json({
+            success: true,
+            message: "Lectures successfully added to the course",
+            course
         })
-
-        if (result) {
-            lectureData.lecture.public_id = result.public_id
-            lectureData.lecture.secure_url = result.secure_url
-        }
-        fs.rm(`uploads/${req.file.filename}`)
+    } catch (e) {
+        return next(new AppError(e.message + 500))
     }
-
-    course.lectures.push(lectureData)
-    course.numberOfLecture = course.lectures.length
-
-    await course.save()
-
-    res.status(200).json({
-        success: true,
-        message: "Lectures successfully added to the course",
-        // course
-    })
 }
 
 const updateLecture = async (req, res, next) => {
@@ -183,8 +222,6 @@ const updateLecture = async (req, res, next) => {
 
         const lectureIndex = course.lectures.findIndex(
             (lecture) => lecture._id.toString() === lectureId.toString())
-
-        console.log(lectureIndex)
 
         if (lectureIndex === -1) {
             return next(new AppError('No Lecture Found', 400))
@@ -215,37 +252,41 @@ const updateLecture = async (req, res, next) => {
             success: true,
             course
         })
-    }
-    catch (e) {
-        console.log(e)
+    } catch (e) {
+        return next(new AppError(e.message + 500))
     }
 }
 
 const deleteLecture = async (req, res, next) => {
-    const { id } = req.params
-    const { lectureId } = req.params
+    try {
+        const { id } = req.params
+        const { lectureId } = req.params
 
-    const course = await Course.findById(id)
-    if (!course) {
-        return next(new AppError('No Course Found', 400))
+        const course = await Course.findById(id)
+        if (!course) {
+            return next(new AppError('No Course Found', 400))
+        }
+
+        const lectureIndex = course.lectures.findIndex(
+            (lecture) => lecture._id.toString() === lectureId.toString())
+
+        if (lectureIndex === -1) {
+            return next(new AppError('No Lecture Found', 400))
+        }
+
+        course.lectures.pop(course.lectures[lectureIndex])
+        course.numberOfLecture = course.lectures.length
+
+        await course.save()
+
+        res.status(200).json({
+            status: true,
+            message: "Lecture deleted successfully",
+            course
+        })
+    } catch (e) {
+        return next(new AppError(e.message + 500))
     }
-
-    const lectureIndex = course.lectures.findIndex(
-        (lecture) => lecture._id.toString() === lectureId.toString())
-
-    console.log(lectureIndex)
-
-    if (lectureIndex === -1) {
-        return next(new AppError('No Lecture Found', 400))
-    }
-
-    course.lectures.pop(course.lectures[lectureIndex])
-    course.numberOfLecture = course.lectures.length
-    await course.save()
-    res.status(200).json({
-        status: true,
-        course
-    })
 }
 
 export {

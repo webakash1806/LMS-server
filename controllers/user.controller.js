@@ -229,7 +229,6 @@ const resetPassword = async (req, res, next) => {
 
 }
 
-
 const changePassword = async (req, res, next) => {
     const { oldPassword, newPassword } = req.body
     const { id } = req.user
