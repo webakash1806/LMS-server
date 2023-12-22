@@ -169,11 +169,91 @@ const createLecture = async (req, res, next) => {
     })
 }
 
+const updateLecture = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const { lectureId } = req.params
+        const { title, description, lecture } = req.body
+
+        const course = await Course.findById(id)
+
+        if (!course) {
+            return next(new AppError('No Course Found', 400))
+        }
+
+        const lectureIndex = course.lectures.findIndex(
+            (lecture) => lecture._id.toString() === lectureId.toString())
+
+        console.log(lectureIndex)
+
+        if (lectureIndex === -1) {
+            return next(new AppError('No Lecture Found', 400))
+        }
+
+        if (title) {
+            course.lectures[lectureIndex].title = await title
+        }
+
+        if (description) {
+            course.lectures[lectureIndex].description = await description
+        }
+
+        if (req.file) {
+            const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                folder: 'lms'
+            })
+
+            if (result) {
+                course.lectures[lectureIndex].lecture.public_id = result.public_id
+                course.lectures[lectureIndex].lecture.secure_url = result.secure_url
+            }
+            fs.rm(`uploads/${req.file.filename}`)
+        }
+
+        await course.save()
+        res.status(200).json({
+            success: true,
+            course
+        })
+    }
+    catch (e) {
+        console.log(e)
+    }
+}
+
+const deleteLecture = async (req, res, next) => {
+    const { id } = req.params
+    const { lectureId } = req.params
+
+    const course = await Course.findById(id)
+    if (!course) {
+        return next(new AppError('No Course Found', 400))
+    }
+
+    const lectureIndex = course.lectures.findIndex(
+        (lecture) => lecture._id.toString() === lectureId.toString())
+
+    console.log(lectureIndex)
+
+    if (lectureIndex === -1) {
+        return next(new AppError('No Lecture Found', 400))
+    }
+
+    await course.deleteOne(course.lectures[lectureIndex])
+    await course.save()
+    res.status(200).json({
+        status: true,
+        course
+    })
+}
+
 export {
     getCourseLists,
     getLecturesList,
     createCourse,
     updateCourse,
     deleteCourse,
-    createLecture
+    createLecture,
+    updateLecture,
+    deleteLecture
 }
