@@ -26,4 +26,15 @@ const authorizedUser = (...role) => async (req, res, next) => {
     next()
 }
 
-export { isLoggedIn, authorizedUser }
+const authorizedSubscriber = async (req, res, next) => {
+    const subscription = req.user.subscription
+    const role = req.user.role
+
+    if (subscription !== 'active' && role !== 'ADMIN') {
+        return next(new AppError('Unauthenticated! You dont have permission to access this. please subscribe', 404))
+    }
+
+    next()
+}
+
+export { isLoggedIn, authorizedUser, authorizedSubscriber }

@@ -16,7 +16,7 @@ router.get('/razorpay-key', isLoggedIn, razorpayApiKey)
 
 router.post('/subscribe', isLoggedIn, subscription)
 
-router.post('verify-subscription', isLoggedIn, verifySubscription)
+router.post('/verify-subscription', isLoggedIn, verifySubscription)
 
 router.post('/unsubscribe', isLoggedIn, cancelSubscription)
 
