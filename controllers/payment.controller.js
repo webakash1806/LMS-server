@@ -116,12 +116,9 @@ const cancelSubscription = async (req, res, next) => {
 
         const subscriptionId = user.subscription.id
 
-
         const subscription = await razorpay.subscriptions.cancel({
             subscriptionId
         })
-
-        console.log(subscription)
 
         user.subscription.status = subscription.status
 
