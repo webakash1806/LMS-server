@@ -164,19 +164,19 @@ const forgotPassword = async (req, res, next) => {
     }
 
     const user = await User.findOne({ email })
+
+    if (!user) {
+        return next(new AppError("Email is not registered", 400))
+    }
+
+    const resetToken = await user.generatePasswordResetToken()
+    await user.save()
+
+    const resetPasswordURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
+    const subject = 'Reset Password'
+    const message = `Reset your Password by clicking on this link <a href=${resetPasswordURL}/>`
+
     try {
-        if (!user) {
-            return next(new AppError("Email is not registered", 400))
-        }
-
-        const resetToken = await user.generatePasswordResetToken()
-        await user.save()
-
-        const resetPasswordURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
-        const subject = 'Reset Password'
-        const message = `Reset your Password by clicking on this link <a href=${resetPasswordURL}/>`
-
-
         await sendEmail(email, subject, message)
 
         res.status(200).json({
@@ -184,11 +184,12 @@ const forgotPassword = async (req, res, next) => {
             message: 'Password reset link has been sent to your email'
         })
 
+
+    } catch (e) {
         user.forgetPasswordExpiry = undefined
         user.forgetPasswordToken = undefined
 
         await user.save()
-    } catch (e) {
         return next(new AppError(e.message, 500))
     }
 
@@ -296,7 +297,6 @@ const updateProfile = async (req, res, next) => {
         if (fullName) {
             user.fullName = await fullName
         }
-
 
 
         if (req.file) {
