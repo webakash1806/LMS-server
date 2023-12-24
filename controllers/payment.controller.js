@@ -84,6 +84,8 @@ const verifySubscription = async (req, res, next) => {
             razorpay_subscription_id
         })
 
+        await Payment.save()
+
         user.subscription.status = 'active'
         await user.save()
 
@@ -109,14 +111,17 @@ const cancelSubscription = async (req, res, next) => {
         }
 
         if (user.role === 'ADMIN') {
-            return next(new AppError('Admin Cannot purchase subscription', 400))
+            return next(new AppError('Admin Cannot cancel subscription', 400))
         }
 
         const subscriptionId = user.subscription.id
 
+
         const subscription = await razorpay.subscriptions.cancel({
             subscriptionId
         })
+
+        console.log(subscription)
 
         user.subscription.status = subscription.status
 
