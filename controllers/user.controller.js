@@ -104,7 +104,7 @@ const login = async (req, res, next) => {
         console.log(user)
 
         if (!user) {
-            return next(new AppError('Email is not registered', 400))
+            return next(new AppError('Email is not registered', 401))
         }
 
         const passwordCheck = await user.comparePassword(password)
