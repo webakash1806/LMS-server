@@ -44,9 +44,9 @@ const getLecturesList = async (req, res, next) => {
 const createCourse = async (req, res, next) => {
 
     try {
-        const { title, description, category, createdBy, thumbnail } = req.body
+        const { title, description, category, createdBy, price, discount, skills, thumbnail } = req.body
 
-        if (!title || !description || !category || !createdBy) {
+        if (!title || !description || !category || !createdBy || !price || !discount || !skills) {
             return next(new AppError('All Fields are required', 400))
         }
 
@@ -55,6 +55,9 @@ const createCourse = async (req, res, next) => {
             description,
             category,
             createdBy,
+            price,
+            discount,
+            skills,
             thumbnail: {
                 public_id: '',
                 secure_url: '',

@@ -12,13 +12,28 @@ const courseSchema = new Schema({
     description: {
         type: 'String',
         required: [true, 'Description is required'],
-        minLength: [20, 'Description must be atleast 20 characters'],
-        maxLength: [250, 'Description should be less than 250 characters'],
+        minLength: [200, 'Description must be atleast 200 characters'],
+        maxLength: [500, 'Description should be less than 500 characters'],
         trim: true,
     },
     category: {
         type: 'String',
         required: [true, 'Category is required']
+    },
+    price: {
+        type: Number,
+        required: [true, 'Price is required']
+    },
+    discount: {
+        type: Number,
+        required: [true, 'Discount is required']
+    },
+    skills: {
+        type: 'String',
+        required: [true, 'Description is required'],
+        minLength: [6, 'skills must be atleast 6 characters'],
+        maxLength: [100, 'skills should be less than 100 characters'],
+        trim: true,
     },
     thumbnail: {
         public_id: {
