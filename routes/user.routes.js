@@ -22,6 +22,6 @@ router.get('/me', isLoggedIn, profile)
 router.post('/forgot-password', forgotPassword)
 router.post('/reset-password/:resetToken', resetPassword)
 router.post('/change-password', isLoggedIn, changePassword)
-router.put('/update-profile', isLoggedIn, upload.single("avatar"), updateProfile)
+router.put('/update-profile/:id', isLoggedIn, upload.single("avatar"), updateProfile)
 
 export default router
