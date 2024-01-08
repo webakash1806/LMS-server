@@ -84,7 +84,7 @@ const verifySubscription = async (req, res, next) => {
             razorpay_subscription_id
         })
 
-        await Payment.save()
+        // await Payment.save()
 
         user.subscription.status = 'active'
         await user.save()
@@ -96,7 +96,8 @@ const verifySubscription = async (req, res, next) => {
         })
 
     } catch (e) {
-        return next(new AppError(e.message, 500))
+        console.log(e)
+        return next(new AppError(e, 500))
     }
 }
 
