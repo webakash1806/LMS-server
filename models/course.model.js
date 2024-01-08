@@ -28,6 +28,10 @@ const courseSchema = new Schema({
         type: Number,
         required: [true, 'Discount is required']
     },
+    language: {
+        type: 'String',
+        required: [true, 'Language is required']
+    },
     skills: {
         type: 'String',
         required: [true, 'Description is required'],
