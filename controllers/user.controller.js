@@ -78,7 +78,8 @@ const register = async (req, res, next) => {
             user.confirmPassword = undefined
             res.status(201).json({
                 success: true,
-                message: 'User registered Successfully'
+                message: 'User registered Successfully',
+                user
             })
         }
         else {
