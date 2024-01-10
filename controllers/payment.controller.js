@@ -119,13 +119,8 @@ const cancelSubscription = async (req, res, next) => {
 
         const subscriptionId = user.subscription.id
 
-        const subscription = await razorpay.subscriptions.cancel({
-            subscriptionId
-        })
+        const subscription = await razorpay.subscriptions.cancel(subscriptionId)
 
-        if (!subscription) {
-            console.log("hello")
-        }
         user.subscription.status = subscription.status
 
         await user.save()
@@ -136,7 +131,7 @@ const cancelSubscription = async (req, res, next) => {
         })
 
     } catch (error) {
-        return next(new AppError(error.error.description, error.statusCode))
+        return next(new AppError(error.error, error.statusCode))
     }
 }
 
