@@ -1,3 +1,4 @@
+import User from "../models/user.models.js"
 import AppError from "../utils/error.utils.js"
 import jwt from 'jsonwebtoken'
 
@@ -27,8 +28,10 @@ const authorizedUser = (...role) => async (req, res, next) => {
 }
 
 const authorizedSubscriber = async (req, res, next) => {
-    const subscription = req.user.subscription
-    const role = req.user.role
+
+    const user = await User.findById(req.user.id)
+    const subscription = user.subscription.status
+    const role = user.role
 
     if (subscription !== 'active' && role !== 'ADMIN') {
         return next(new AppError('Unauthenticated! You dont have permission to access this. please subscribe', 404))

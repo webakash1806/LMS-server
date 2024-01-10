@@ -7,7 +7,7 @@ import {
     verifySubscription
 } from '../controllers/payment.controller.js'
 
-import { isLoggedIn, authorizedUser } from "../middlewares/auth.middleware.js";
+import { isLoggedIn, authorizedUser, authorizedSubscriber } from "../middlewares/auth.middleware.js";
 
 
 const router = Router()
@@ -18,7 +18,7 @@ router.post('/subscribe', isLoggedIn, subscription)
 
 router.post('/verify-subscription', isLoggedIn, verifySubscription)
 
-router.post('/unsubscribe', isLoggedIn, cancelSubscription)
+router.post('/unsubscribe', isLoggedIn, authorizedSubscriber, cancelSubscription)
 
 router.get('/', isLoggedIn, authorizedUser('ADMIN'), allPayments)
 
