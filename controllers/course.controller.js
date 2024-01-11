@@ -187,7 +187,8 @@ const createLecture = async (req, res, next) => {
 
         if (req.file) {
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
-                folder: 'lms'
+                folder: 'lms',
+                resource_type: 'video'
             })
 
             if (result) {
