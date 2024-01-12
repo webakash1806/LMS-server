@@ -279,7 +279,14 @@ const deleteLecture = async (req, res, next) => {
             return next(new AppError('No Lecture Found', 400))
         }
 
-        course.lectures.pop(course.lectures[lectureIndex])
+        await cloudinary.v2.uploader.destroy(
+            course.lectures[lectureIndex].lecture.public_id,
+            {
+                resource_type: 'video',
+            }
+        );
+
+        course.lectures.splice(lectureIndex, 1)
         course.numberOfLecture = course.lectures.length
 
         await course.save()
