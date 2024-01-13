@@ -47,7 +47,6 @@ const register = async (req, res, next) => {
         }
 
         if (req.file) {
-            // console.log(req.file)
             try {
                 const result = await cloudinary.v2.uploader.upload(req.file.path, {
                     folder: 'lms',
@@ -101,8 +100,6 @@ const login = async (req, res, next) => {
         const user = await User.findOne({
             email
         }).select('+password')
-
-        console.log(user)
 
         if (!user) {
             return next(new AppError('Email is not registered', 401))
@@ -201,14 +198,10 @@ const resetPassword = async (req, res, next) => {
         const { resetToken } = req.params
         const { password } = req.body
 
-        console.log(resetToken)
-
         const forgetPasswordToken = crypto
             .createHash('sha256')
             .update(resetToken)
             .digest('hex');
-
-        console.log(forgetPasswordToken)
 
         const user = await User.findOne({
             forgetPasswordToken,

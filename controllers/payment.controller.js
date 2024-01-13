@@ -29,7 +29,6 @@ const subscription = async (req, res, next) => {
             return next(new AppError('Admin Cannot purchase subscription', 400))
         }
 
-        // console.log(process.env.RAZORPAY_KEY_ID)
         const subscription = await razorpay.subscriptions.create({
             plan_id: process.env.RAZORPAY_PLAN_ID, // The unique plan ID
             customer_notify: 1,
@@ -84,12 +83,8 @@ const verifySubscription = async (req, res, next) => {
             razorpay_subscription_id
         })
 
-        // await Payment.save()
-
         user.subscription.status = 'active'
         await user.save()
-
-        console.log(user)
 
         res.status(200).json({
             success: true,
@@ -98,7 +93,6 @@ const verifySubscription = async (req, res, next) => {
         })
 
     } catch (e) {
-        console.log(e)
         return next(new AppError(e, 500))
     }
 }

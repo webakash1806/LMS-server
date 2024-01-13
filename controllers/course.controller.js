@@ -17,7 +17,7 @@ const getCourseLists = async (req, res, next) => {
             course
         })
     } catch (e) {
-        return next(new AppError(e.message + 500))
+        return next(new AppError(e.message, 500))
     }
 }
 
@@ -37,7 +37,7 @@ const getLecturesList = async (req, res, next) => {
             lectures: course.lectures
         })
     } catch (e) {
-        return next(new AppError(e.message + 500))
+        return next(new AppError(e.message, 500))
     }
 }
 
@@ -89,7 +89,7 @@ const createCourse = async (req, res, next) => {
             course
         })
     } catch (e) {
-        return next(new AppError(e.message + 500))
+        return next(new AppError(e.message, 500))
     }
 }
 
@@ -131,7 +131,7 @@ const updateCourse = async (req, res, next) => {
             course
         })
     } catch (e) {
-        return next(new AppError(e.message + 500))
+        return next(new AppError(e.message, 500))
     }
 }
 
@@ -152,7 +152,7 @@ const deleteCourse = async (req, res, next) => {
             message: "Course deleted successfully"
         })
     } catch (e) {
-        return next(new AppError(e.message + 500))
+        return next(new AppError(e.message, 500))
     }
 }
 
@@ -209,7 +209,7 @@ const createLecture = async (req, res, next) => {
             course
         })
     } catch (e) {
-        return next(new AppError(e.message + 500))
+        return next(new AppError(e.message, 500))
     }
 }
 
@@ -259,7 +259,7 @@ const updateLecture = async (req, res, next) => {
             course
         })
     } catch (e) {
-        return next(new AppError(e.message + 500))
+        return next(new AppError(e.message, 500))
     }
 }
 
@@ -298,7 +298,7 @@ const deleteLecture = async (req, res, next) => {
             course
         })
     } catch (e) {
-        return next(new AppError(e.message + 500))
+        return next(new AppError(e.message, 500))
     }
 }
 
