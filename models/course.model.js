@@ -41,11 +41,11 @@ const courseSchema = new Schema({
     },
     thumbnail: {
         public_id: {
-            type: 'String',
+            type: String,
             // required: true
         },
         secure_url: {
-            type: 'String',
+            type: String,
             // required: true
         }
     },

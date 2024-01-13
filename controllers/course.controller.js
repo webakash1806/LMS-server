@@ -110,18 +110,18 @@ const updateCourse = async (req, res, next) => {
         }
 
 
-
         if (req.file) {
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: 'lms'
             })
 
             if (result) {
-                course.thumbnail.public_id = result.public_id
-                course.thumbnail.secure_url = result.secure_url
+                course.thumbnail.public_id = await result.public_id
+                course.thumbnail.secure_url = await result.secure_url
             }
             fs.rm(`uploads/${req.file.filename}`)
         }
+
 
         await course.save()
 
@@ -242,7 +242,8 @@ const updateLecture = async (req, res, next) => {
 
         if (req.file) {
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
-                folder: 'lms'
+                folder: 'lms',
+                resource_type: 'video'
             })
 
             if (result) {
