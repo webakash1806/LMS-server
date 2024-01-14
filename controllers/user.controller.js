@@ -10,6 +10,7 @@ const cookieOption = {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
     // secure: true,
+    domain: '.github.io'
 }
 
 const register = async (req, res, next) => {
