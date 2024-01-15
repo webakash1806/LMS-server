@@ -175,17 +175,70 @@ const cancelSubscription = async (req, res, next) => {
  */
 const allPayments = async (req, res, next) => {
     try {
-        const { count } = req.query
+        const { count, skip } = req.query
 
         const subscription = await razorpay.subscriptions.all({
-            count: count || 10,
-
+            count: count ? count : 10,
+            skip: skip ? skip : 0
         })
+
+        const monthNames = [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
+        ];
+
+        const finalMonths = {
+            January: 0,
+            February: 0,
+            March: 0,
+            April: 0,
+            May: 0,
+            June: 0,
+            July: 0,
+            August: 0,
+            September: 0,
+            October: 0,
+            November: 0,
+            December: 0,
+        };
+
+        const monthlyWisePayments = subscription.items.map((payment) => {
+            const monthsInNumbers = new Date(payment.start_at * 1000);
+
+            return monthNames[monthsInNumbers.getMonth()];
+        });
+
+        monthlyWisePayments.map((month) => {
+            Object.keys(finalMonths).forEach((objMonth) => {
+                if (month === objMonth) {
+                    finalMonths[month] += 1;
+                }
+            });
+        });
+
+        const monthlySalesRecord = [];
+
+        Object.keys(finalMonths).forEach((monthName) => {
+            monthlySalesRecord.push(finalMonths[monthName]);
+        });
+
         res.status(200).json({
             success: true,
-            message: "All payment",
-            allData: subscription
-        })
+            message: 'All payments',
+            allPayments,
+            finalMonths,
+            monthlySalesRecord,
+        });
     } catch (e) {
         return next(new AppError(e.message, 500))
     }
