@@ -182,6 +182,7 @@ const allPayments = async (req, res, next) => {
             skip: skip ? skip : 0
         })
 
+
         const monthNames = [
             'January',
             'February',
@@ -235,7 +236,7 @@ const allPayments = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: 'All payments',
-            allPayments,
+            subscription,
             finalMonths,
             monthlySalesRecord,
         });
