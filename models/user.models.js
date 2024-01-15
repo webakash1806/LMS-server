@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 
+/* The code is defining a Mongoose schema for a user in a MongoDB database. */
 const userSchema = new Schema({
     role: {
         type: String,
@@ -56,6 +57,8 @@ const userSchema = new Schema({
 
 }, { timestamps: true })
 
+/* The code `userSchema.pre('save', async function (next) { ... })` is a pre-save middleware function
+in Mongoose. It is executed before saving a user document to the database. */
 userSchema.pre('save', async function (next) {
     if (!this.isModified('password') || !this.isModified('confirmPassword')) {
         return next()
@@ -64,6 +67,9 @@ userSchema.pre('save', async function (next) {
     this.confirmPassword = await bcrypt.hash(this.confirmPassword, 10)
 })
 
+/* The `userSchema.methods` object is defining additional methods that can be called on user documents
+created using the `User` model. These methods are specific to each user document and can be accessed
+using dot notation. */
 userSchema.methods = {
     generateJWTToken: async function () {
         return await jwt.sign(

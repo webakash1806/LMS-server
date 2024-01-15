@@ -6,6 +6,8 @@ import bcrypt from 'bcryptjs'
 import sendEmail from "../utils/sendEmail.js"
 import crypto from 'crypto'
 
+/* The below code is defining an object called `cookieOption` with properties that specify options for
+a cookie. */
 const cookieOption = {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
@@ -13,6 +15,22 @@ const cookieOption = {
     sameSite: 'None',
 }
 
+/**
+ * The `register` function is an asynchronous function that handles the registration process for a
+ * user, including validation, creating a new user in the database, and generating a JWT token for
+ * authentication.
+ * @param req - The `req` parameter is the request object that contains information about the HTTP
+ * request made by the client. It includes properties such as `req.body` (the request body),
+ * `req.params` (the route parameters), `req.query` (the query parameters), and more.
+ * @param res - The `res` parameter is the response object in Express.js. It is used to send the
+ * response back to the client.
+ * @param next - The `next` parameter is a callback function that is used to pass control to the next
+ * middleware function in the request-response cycle. It is typically used to handle errors or to move
+ * on to the next middleware function after completing a specific task.
+ * @returns a response to the client. If the registration is successful, it returns a JSON object with
+ * a success message and the registered user's details. If there are any errors during the registration
+ * process, it returns an error message.
+ */
 const register = async (req, res, next) => {
     try {
         const { userName, fullName, email, password, confirmPassword } = req.body
@@ -91,6 +109,16 @@ const register = async (req, res, next) => {
 
 }
 
+/**
+ * The login function is an asynchronous function that handles the login process by checking the email
+ * and password provided, finding the user with the given email, comparing the password, generating a
+ * JWT token, setting the token as a cookie, and returning a success response with the user
+ * information.
+ * @returns The login function returns a JSON response with the following properties:
+ * - success: a boolean value indicating whether the login was successful or not
+ * - message: a string message indicating the result of the login attempt
+ * - user: an object representing the user who logged in
+ */
 const login = async (req, res, next) => {
     try {
         const { email, password } = req.body
@@ -127,9 +155,25 @@ const login = async (req, res, next) => {
 
 }
 
+/**
+ * The `logout` function logs out a user by clearing the token cookie and returning a success message.
+ * @param req - The `req` parameter is the request object that contains information about the incoming
+ * HTTP request, such as the headers, query parameters, and body.
+ * @param res - The `res` parameter is the response object that is used to send the response back to
+ * the client. It contains methods and properties that allow you to manipulate the response, set
+ * headers, and send data back to the client. In this case, it is used to set a cookie and send a JSON
+ * @returns a response object with a status code and a JSON object containing the success status and a
+ * message.
+ */
 const logout = (req, res) => {
     const token = ""
-    const cookiesOption = { logoutAt: new Date(), httpOnly: true }
+    const cookiesOption = {
+        logoutAt: new Date(), httpOnly: true, secure: true,
+        sameSite: 'None',
+    }
+
+
+    console.log(token)
 
     try {
         res.cookie("token", token, cookiesOption)
@@ -140,6 +184,11 @@ const logout = (req, res) => {
     }
 }
 
+/**
+ * The profile function fetches user details and sends a JSON response with the user object.
+ * @returns a JSON response with the user details if the operation is successful. If there is an error,
+ * it is returning an error message with a status code of 500.
+ */
 const profile = async (req, res) => {
     try {
         const userId = req.user.id
@@ -156,6 +205,12 @@ const profile = async (req, res) => {
     }
 }
 
+/**
+ * The `forgotPassword` function is an asynchronous function that handles the logic for generating a
+ * password reset token, sending an email with the reset link, and handling any errors that may occur.
+ * @returns a JSON response with a success message if the email is valid and the password reset link
+ * has been sent successfully. If there is an error in sending the email, it returns an error message.
+ */
 const forgotPassword = async (req, res, next) => {
     const { email } = req.body
     if (!email) {
@@ -194,6 +249,12 @@ const forgotPassword = async (req, res, next) => {
 
 }
 
+/**
+ * The `resetPassword` function is an asynchronous function that handles the logic for resetting a
+ * user's password using a reset token and a new password.
+ * @returns a JSON response with a success status and a message indicating that the password reset was
+ * successful.
+ */
 const resetPassword = async (req, res, next) => {
     try {
         const { resetToken } = req.params
@@ -234,6 +295,12 @@ const resetPassword = async (req, res, next) => {
 
 }
 
+/**
+ * The `changePassword` function is an asynchronous function that handles the logic for changing a
+ * user's password.
+ * @returns a JSON response with a status of 200 and a message indicating that the password has been
+ * changed successfully.
+ */
 const changePassword = async (req, res, next) => {
     try {
         const { oldPassword, newPassword } = req.body
@@ -276,7 +343,12 @@ const changePassword = async (req, res, next) => {
 
 }
 
-
+/**
+ * The `updateProfile` function is an asynchronous function that updates the user's profile
+ * information, including their full name and avatar image.
+ * @returns a JSON response with a success status and a message indicating that the user detail has
+ * been updated successfully.
+ */
 const updateProfile = async (req, res, next) => {
     try {
         const { fullName } = req.body
@@ -329,6 +401,8 @@ const updateProfile = async (req, res, next) => {
 
 }
 
+/* The below code is exporting a set of functions related to user authentication and profile
+management. These functions include: */
 export {
     register,
     login,

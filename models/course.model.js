@@ -1,6 +1,8 @@
 import { model, Schema } from 'mongoose'
 
 
+/* The code is defining a Mongoose schema for a course. The schema specifies the structure and
+validation rules for the course object. */
 const courseSchema = new Schema({
     title: {
         type: 'String',
@@ -89,6 +91,8 @@ const courseSchema = new Schema({
     timestamps: true
 })
 
+/* The line `const Course = model('Course', courseSchema)` is creating a Mongoose model named "Course"
+based on the defined schema "courseSchema". */
 const Course = model('Course', courseSchema)
 
 export default Course

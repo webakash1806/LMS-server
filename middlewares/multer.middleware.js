@@ -2,6 +2,8 @@ import multer from 'multer'
 import path from 'path'
 
 
+/* The code is creating a multer middleware instance called `upload`. Multer is a middleware for
+handling multipart/form-data, which is commonly used for file uploads. */
 const upload = multer({
     dest: 'uploads/',
     limits: { fileSize: 50 * 1024 * 1024 },

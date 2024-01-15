@@ -4,6 +4,22 @@ import { razorpay } from "../server.js";
 import AppError from "../utils/error.utils.js"
 import crypto from 'crypto'
 
+/**
+ * The function `razorpayApiKey` returns the Razorpay API key as a JSON response.
+ * @param req - The `req` parameter is the request object that contains information about the incoming
+ * HTTP request, such as the request headers, request body, and request parameters. It is used to
+ * access and manipulate the data sent by the client.
+ * @param res - The `res` parameter is the response object that is used to send the response back to
+ * the client. It has methods like `status()` to set the HTTP status code, `json()` to send a JSON
+ * response, and `send()` to send a plain text response.
+ * @param next - The `next` parameter is a function that is used to pass control to the next middleware
+ * function in the request-response cycle. It is typically used to handle errors or to move on to the
+ * next middleware function after completing the current one.
+ * @returns a JSON response with the following properties:
+ * - success: a boolean value indicating whether the request was successful or not
+ * - message: a string message indicating the purpose of the response
+ * - key: the value of the RAZORPAY_KEY_ID environment variable
+ */
 const razorpayApiKey = async (req, res, next) => {
     try {
         res.status(200).json({
@@ -16,6 +32,14 @@ const razorpayApiKey = async (req, res, next) => {
     }
 }
 
+/**
+ * The `subscription` function is an asynchronous function that handles the process of subscribing a
+ * user to a subscription plan using Razorpay API.
+ * @returns a JSON response with the following properties:
+ * - success: a boolean value indicating whether the subscription was successful or not
+ * - message: a string message indicating the result of the subscription
+ * - subscription_id: the ID of the subscription
+ */
 const subscription = async (req, res, next) => {
     try {
         const { id } = req.user
@@ -29,6 +53,7 @@ const subscription = async (req, res, next) => {
             return next(new AppError('Admin Cannot purchase subscription', 400))
         }
 
+        /* The code is using the Razorpay API to create a subscription for a user. */
         const subscription = await razorpay.subscriptions.create({
             plan_id: process.env.RAZORPAY_PLAN_ID, // The unique plan ID
             customer_notify: 1,
@@ -53,6 +78,14 @@ const subscription = async (req, res, next) => {
     }
 }
 
+/**
+ * The function `verifySubscription` is an asynchronous function that verifies a subscription payment
+ * using Razorpay and updates the user's subscription status to 'active' if the payment is successful.
+ * @returns a JSON response with the following properties:
+ * - success: a boolean value indicating whether the verification was successful or not
+ * - message: a string message indicating the result of the verification
+ * - subscription: an object representing the user's subscription status
+ */
 const verifySubscription = async (req, res, next) => {
     try {
         const { id } = req.user
@@ -97,6 +130,12 @@ const verifySubscription = async (req, res, next) => {
     }
 }
 
+/**
+ * The `cancelSubscription` function cancels a user's subscription and updates the subscription status
+ * in the database.
+ * @returns a JSON response with a success status and a message indicating that the subscription has
+ * been cancelled.
+ */
 const cancelSubscription = async (req, res, next) => {
     try {
         const { id } = req.user
@@ -129,6 +168,11 @@ const cancelSubscription = async (req, res, next) => {
     }
 }
 
+/**
+ * The above function retrieves all payment subscriptions using the Razorpay API and returns the data
+ * as a JSON response.
+ * @returns The function `allPayments` is returning a JSON response with the following structure:
+ */
 const allPayments = async (req, res, next) => {
     try {
         const { count } = req.query
@@ -147,6 +191,8 @@ const allPayments = async (req, res, next) => {
     }
 }
 
+/* The `export` statement is used to export functions or variables from a module so that they can be
+used in other modules. In this case, the `export` statement is exporting the following functions: */
 export {
     razorpayApiKey,
     subscription,

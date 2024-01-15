@@ -1,6 +1,8 @@
 import { model, Schema } from "mongoose"
 
 
+/* The code is defining a Mongoose schema for a payment object. The schema specifies the structure and
+validation rules for the payment object. */
 const paymentSchema = new Schema({
     razorpay_payment_id: {
         type: String,
