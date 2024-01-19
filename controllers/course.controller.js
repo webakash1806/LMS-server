@@ -140,13 +140,9 @@ const updateCourse = async (req, res, next) => {
         /* The above code is written in JavaScript. It is using destructuring assignment to extract the
         `id` property from the `req.params` object. */
 
-        const course = await Course.findByIdAndUpdate(
-            id,
-            {
-                $set: req.body
-            },
-            { runValidators: true }
-        )
+        const course = await Course.findById(id)
+
+        const { title, description, category, createdBy, price, discount, skills, language, thumbnail } = req.body
 
         /* The code `if (!course) { return next(new AppError('No Course Found', 400)) }` is checking if
         the `course` variable is falsy (null, undefined, false, 0, empty string, etc.). If the
@@ -158,21 +154,57 @@ const updateCourse = async (req, res, next) => {
             return next(new AppError('No Course Found', 400))
         }
 
+        if (title) {
+            course.title = await title
+        }
+
+        if (description) {
+            course.description = await description
+        }
+
+        if (category) {
+            course.category = await category
+        }
+
+        if (createdBy) {
+            course.createdBy = await createdBy
+        }
+
+        if (price) {
+            course.price = await price
+        }
+
+        if (discount) {
+            course.discount = await discount
+        }
+
+        if (skills) {
+            course.skills = await skills
+        }
+
+        if (language) {
+            course.language = await language
+        }
+
         /* This code block is responsible for uploading a thumbnail image for a course to the cloud
         storage service, Cloudinary. */
         if (req.file) {
+
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: 'lms'
             })
-
             if (result) {
-                course.thumbnail.public_id = await result.public_id
-                course.thumbnail.secure_url = await result.secure_url
+                course.thumbnail.public_id = result.public_id
+                course.thumbnail.secure_url = result.secure_url
             }
             fs.rm(`uploads/${req.file.filename}`)
         }
 
+        console.log(course.thumbnail)
+
         await course.save()
+
+        console.log(course.thumbnail)
 
         res.status(200).json({
             success: true,
