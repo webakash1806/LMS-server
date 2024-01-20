@@ -34,22 +34,27 @@ const cookieOption = {
 const register = async (req, res, next) => {
 
     try {
+        // Extracting user input from request body
         const { userName, fullName, email, password, confirmPassword } = req.body
 
+        // Validating required fields
         if (!userName || !fullName || !email || !password || !confirmPassword) {
             return next(new AppError('All Fields are required', 400))
         }
 
+        // Checking if the username is already taken
         const uniqueUser = await User.findOne({ userName })
         if (uniqueUser) {
             return next(new AppError('UserName already exists', 400))
         }
 
+        // Checking if the email is already registered
         const uniqueEmail = await User.findOne({ email })
         if (uniqueEmail) {
             return next(new AppError('Email is already registered', 400))
         }
 
+        // Creating a new user in the database
         const user = await User.create({
             userName,
             fullName,
@@ -66,8 +71,10 @@ const register = async (req, res, next) => {
             return next(new AppError('Registration Failed!', 400))
         }
 
+        // Handling avatar upload using cloudinary if a file is present in the request
         if (req.file) {
             try {
+                // Uploading the file to cloudinary
                 const result = await cloudinary.v2.uploader.upload(req.file.path, {
                     folder: 'lms',
                     width: 250,
@@ -75,10 +82,11 @@ const register = async (req, res, next) => {
                     gravity: 'faces',
                     crop: 'fill',
                 })
+                // Updating user avatar information
                 if (result) {
                     user.avatar.publicId = result.public_id
                     user.avatar.secure_url = result.secure_url
-
+                    // Removing the temporary file after upload
                     fs.rm(`uploads/${req.file.filename}`)
                 }
             }
@@ -87,10 +95,11 @@ const register = async (req, res, next) => {
             }
         }
 
+        // Generating JWT token and setting it as a cookie
         const token = await user.generateJWTToken()
-
         res.cookie('token', token, cookieOption)
 
+        // Saving user details and sending response to the client
         if (password === confirmPassword) {
             await user.save()
             user.password = undefined
@@ -105,6 +114,7 @@ const register = async (req, res, next) => {
             return next(new AppError('Password and Confirm Password must be same', 400))
         }
     } catch (err) {
+        // Handling any unexpected errors
         return next(new AppError(err.message, 500))
     }
 
@@ -122,15 +132,20 @@ const register = async (req, res, next) => {
  */
 const login = async (req, res, next) => {
     try {
+        // Extracting user input from request body
         const { email, password } = req.body
+
+        // Validating required fields
         if (!email || !password) {
             return next(new AppError('Email and Password is required', 400))
         }
 
+        // Finding the user with the provided email and selecting the password field
         const user = await User.findOne({
             email
         }).select('+password')
 
+        // Handling scenarios where the user is not found or the password is incorrect
         if (!user) {
             return next(new AppError('Email is not registered', 401))
         }
@@ -140,9 +155,11 @@ const login = async (req, res, next) => {
             return next(new AppError('Password is wrong', 400))
         }
 
+        // Generating JWT token and setting it as a cookie
         const token = await user.generateJWTToken()
         res.cookie('token', token, cookieOption)
 
+        // Sending success response to the client
         res.status(200).json({
             success: true,
             message: 'Login Successfull!',
@@ -151,6 +168,7 @@ const login = async (req, res, next) => {
 
     }
     catch (err) {
+        // Handling any unexpected errors
         return next(new AppError(err.message, 500))
     }
 
@@ -167,20 +185,20 @@ const login = async (req, res, next) => {
  * message.
  */
 const logout = (req, res) => {
+    // Clearing the token cookie
     const token = ""
     const cookiesOption = {
         logoutAt: new Date(), httpOnly: true, secure: true,
         sameSite: 'None',
     }
 
-
-    console.log(token)
-
+    // Logging out the user and sending success response
     try {
         res.cookie("token", token, cookiesOption)
         res.status(200).json({ success: true, message: "Logged out" })
     }
     catch (e) {
+        // Handling any unexpected errors
         return res.status(500).json({ success: false, message: e.message })
     }
 }
@@ -192,9 +210,13 @@ const logout = (req, res) => {
  */
 const profile = async (req, res) => {
     try {
+        // Extracting user ID from the request
         const userId = req.user.id
+
+        // Finding the user by ID
         const user = await User.findById(userId)
 
+        // Sending user details as a JSON response
         res.status(200).json({
             success: true,
             message: "User Details",
@@ -202,6 +224,7 @@ const profile = async (req, res) => {
         })
     }
     catch (err) {
+        // Handling any unexpected errors
         return next(new AppError("Failed to fetch" + err.message, 500))
     }
 }
@@ -218,15 +241,19 @@ const forgotPassword = async (req, res, next) => {
         return next(new AppError("Email is Required", 400))
     }
 
+    // Finding the user with the provided email
     const user = await User.findOne({ email })
 
+    // Handling scenarios where the user is not found
     if (!user) {
         return next(new AppError("Email is not registered", 400))
     }
 
+    // Generating a password reset token and saving it in the user document
     const resetToken = await user.generatePasswordResetToken()
     await user.save()
 
+    // Constructing the reset password URL and sending an email with the reset link
     const resetPasswordURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
     const subject = 'Reset Password'
     const message = `Reset your Password by clicking on this link <a href=${resetPasswordURL}/>`
@@ -234,6 +261,7 @@ const forgotPassword = async (req, res, next) => {
     try {
         await sendEmail(email, subject, message)
 
+        // Sending success response to the client
         res.status(200).json({
             success: true,
             message: 'Password reset link has been sent to your email'
@@ -241,6 +269,7 @@ const forgotPassword = async (req, res, next) => {
 
 
     } catch (e) {
+        // Handling errors and cleaning up the user document in case of failure
         user.forgetPasswordExpiry = undefined
         user.forgetPasswordToken = undefined
 
@@ -258,39 +287,47 @@ const forgotPassword = async (req, res, next) => {
  */
 const resetPassword = async (req, res, next) => {
     try {
+        // Extracting reset token and new password from request parameters and body
         const { resetToken } = req.params
         const { password } = req.body
 
+        // Hashing the reset token to compare with the stored token in the database
         const forgetPasswordToken = crypto
             .createHash('sha256')
             .update(resetToken)
             .digest('hex');
 
+        // Finding the user by the hashed reset token and ensuring the token hasn't expired
         const user = await User.findOne({
             forgetPasswordToken,
             forgetPasswordExpiry: { $gt: Date.now() }
         })
 
-
+        // Handling scenarios where the user is not found or the token is invalid/expired
         if (!user) {
             return next(new AppError('Token is Invalid or expired! please resend it', 400))
         }
 
+        // Handling scenario where the new password is not provided
         if (!password) {
             return next(new AppError('Please Enter new Password', 400))
         }
 
+        // Updating user's password, clearing reset token, and expiry
         user.password = await bcrypt.hash(password, 10)
         user.forgetPasswordToken = undefined
         user.forgetPasswordExpiry = undefined
 
+        // Saving the updated user document
         await user.save()
 
+        // Sending success response to the client
         res.status(200).json({
             success: true,
             message: 'Password reset successfull'
         })
     } catch (e) {
+        // Handling any unexpected errors
         return next(new AppError(e.message, 500))
     }
 
@@ -304,41 +341,51 @@ const resetPassword = async (req, res, next) => {
  */
 const changePassword = async (req, res, next) => {
     try {
+        // Extracting old and new passwords from the request body and user ID from request user
         const { oldPassword, newPassword } = req.body
         const { id } = req.user
 
+        // Validating required fields
         if (!oldPassword || !newPassword) {
             return next(new AppError('All fields are required', 400))
         }
 
+        // Ensuring the new password is different from the old password
         if (oldPassword === newPassword) {
             return next(new AppError('New password is same as old password', 400))
         }
 
+        // Finding the user by ID and selecting the password field
         const user = await User.findById(id).select('+password')
 
+        // Handling scenarios where the user is not found
         if (!user) {
             return next(new AppError('User does not exist', 400))
         }
 
+        // Validating the old password
         const passwordValid = await user.comparePassword(oldPassword)
 
+        // Handling scenarios where the old password is incorrect
         if (!passwordValid) {
             return next(new AppError('Old Password is wrong', 400))
         }
 
+        // Updating user's password and saving the updated user document
         user.password = await bcrypt.hash(newPassword, 10)
-
         await user.save()
 
+        // Removing sensitive information before sending the response
         user.password = undefined
 
+        // Sending success response to the client
         res.status(200).json({
             status: true,
             message: 'Password Changed successfully'
         })
     }
     catch (e) {
+        // Handling any unexpected errors
         return next(new AppError(e.message, 500))
     }
 
@@ -352,24 +399,29 @@ const changePassword = async (req, res, next) => {
  */
 const updateProfile = async (req, res, next) => {
     try {
+        // Extracting full name and user ID from the request body and user
         const { fullName } = req.body
         const { id } = req.user
 
+        // Finding the user by ID
         const user = await User.findById(id)
 
+        // Handling scenarios where the user is not found
         if (!user) {
             return next(new AppError('User does not exist', 400))
         }
 
-
+        // Updating user's full name if provided
         if (fullName) {
             user.fullName = await fullName
         }
 
-
+        // Handling avatar upload using cloudinary if a file is present in the request
         if (req.file) {
+            // Destroying the previous avatar in cloudinary
             await cloudinary.v2.uploader.destroy(user.avatar.publicId)
             try {
+                // Uploading the new avatar to cloudinary
                 const result = await cloudinary.v2.uploader.upload(req.file.path, {
                     folder: 'lms',
                     width: 250,
@@ -377,26 +429,32 @@ const updateProfile = async (req, res, next) => {
                     gravity: 'faces',
                     crop: 'fill',
                 })
+                // Updating user's avatar information
                 if (result) {
                     user.avatar.publicId = result.public_id
                     user.avatar.secure_url = result.secure_url
 
+                    // Removing the temporary file after avatar upload
                     fs.rm(`uploads/${req.file.filename}`)
                 }
             }
             catch (err) {
+                // Handling errors during avatar upload
                 return next(new AppError('File can not get uploaded', 500))
             }
         }
 
+        // Saving the updated user document
         await user.save()
 
+        // Sending success response to the client
         res.status(200).json({
             success: true,
             message: 'User Detail updated successfully'
         })
     }
     catch (e) {
+        // Handling any unexpected errors
         return next(new AppError(e.message, 500))
     }
 
