@@ -2,8 +2,6 @@ import User from "../models/user.models.js";
 import AppError from "../utils/error.utils.js";
 
 
-
-
 export const userStats = async (req, res, next) => {
     try {
         const usersCount = await User.countDocuments()

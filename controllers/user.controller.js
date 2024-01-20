@@ -32,6 +32,7 @@ const cookieOption = {
  * process, it returns an error message.
  */
 const register = async (req, res, next) => {
+
     try {
         const { userName, fullName, email, password, confirmPassword } = req.body
 

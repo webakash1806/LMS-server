@@ -1,4 +1,7 @@
-import { Router } from 'express'
+// Importing the 'Router' class from the 'express' module
+import { Router } from 'express';
+
+// Importing various controller functions and middleware from respective files
 import {
     createCourse,
     createLecture,
@@ -11,42 +14,34 @@ import {
 } from '../controllers/course.controller.js';
 
 import { isLoggedIn, authorizedUser, authorizedSubscriber } from '../middlewares/auth.middleware.js';
-import upload from '../middlewares/multer.middleware.js'
+import upload from '../middlewares/multer.middleware.js';
 
-
-/* `const router = Router();` is creating a new instance of the Express Router. The Router is a
-middleware function that allows us to define routes for our application. It provides methods to
-define different HTTP methods (GET, POST, PUT, DELETE) and their corresponding route handlers. */
+// Creating a new instance of the Express Router
 const router = Router();
 
-/* `router.route('/').get(getCourseLists)` is defining a route for the root URL ("/") with the HTTP GET
-method. When a GET request is made to the root URL, the `getCourseLists` function from the
-`course.controller.js` file will be executed. */
-router.route('/').get(getCourseLists)
+// Route to get the list of courses (HTTP GET method)
+router.route('/').get(getCourseLists);
 
-/* `router.route('/:id').get(isLoggedIn, authorizedSubscriber, getLecturesList)` is defining a route
-for the URL pattern "/:id" with the HTTP GET method. */
-router.route('/:id').get(isLoggedIn, authorizedSubscriber, getLecturesList)
+// Route to get the list of lectures for a specific course (HTTP GET method)
+router.route('/:id').get(isLoggedIn, authorizedSubscriber, getLecturesList);
 
-/* The `router.post('/create', upload.single("thumbnail"), isLoggedIn, authorizedUser("ADMIN"),
-createCourse)` is defining a route for the URL pattern "/create" with the HTTP POST method. */
-router.post('/create', upload.single("thumbnail"), isLoggedIn, authorizedUser("ADMIN"), createCourse)
+// Route to create a new course (HTTP POST method)
+router.post('/create', upload.single("thumbnail"), isLoggedIn, authorizedUser("ADMIN"), createCourse);
 
-/* The `router.put('/update/:id', upload.single("thumbnail"), isLoggedIn, authorizedUser("ADMIN"),
-updateCourse)` is defining a route for the URL pattern "/update/:id" with the HTTP PUT method. */
-router.put('/update/:id', upload.single("thumbnail"), isLoggedIn, authorizedUser("ADMIN"), updateCourse)
+// Route to update an existing course (HTTP PUT method)
+router.put('/update/:id', upload.single("thumbnail"), isLoggedIn, authorizedUser("ADMIN"), updateCourse);
 
-/* The `router.delete('/remove/:id', isLoggedIn, authorizedUser("ADMIN"), deleteCourse)` is defining a
-route for the URL pattern "/remove/:id" with the HTTP DELETE method. */
-router.delete('/remove/:id', isLoggedIn, authorizedUser("ADMIN"), deleteCourse)
+// Route to delete an existing course (HTTP DELETE method)
+router.delete('/remove/:id', isLoggedIn, authorizedUser("ADMIN"), deleteCourse);
 
-/* The `router.post('/create/lectures/:id', upload.single("lecture"), isLoggedIn,
-authorizedUser("ADMIN"), createLecture)` is defining a route for the URL pattern
-"/create/lectures/:id" with the HTTP POST method. */
-router.post('/create/lectures/:id', upload.single("lecture"), isLoggedIn, authorizedUser("ADMIN"), createLecture)
+// Route to create a new lecture for a specific course (HTTP POST method)
+router.post('/create/lectures/:id', upload.single("lecture"), isLoggedIn, authorizedUser("ADMIN"), createLecture);
 
-router.put('/update/lectures/:id/:lectureId', upload.single("lecture"), isLoggedIn, authorizedUser("ADMIN"), updateLecture)
+// Route to update an existing lecture for a specific course (HTTP PUT method)
+router.put('/update/lectures/:id/:lectureId', upload.single("lecture"), isLoggedIn, authorizedUser("ADMIN"), updateLecture);
 
-router.delete('/remove/lectures/:id/:lectureId', isLoggedIn, authorizedUser("ADMIN"), deleteLecture)
+// Route to delete an existing lecture for a specific course (HTTP DELETE method)
+router.delete('/remove/lectures/:id/:lectureId', isLoggedIn, authorizedUser("ADMIN"), deleteLecture);
 
-export default router
+// Exporting the router instance for use in other parts of the application
+export default router;

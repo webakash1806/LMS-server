@@ -19,18 +19,22 @@ import fs from 'fs/promises'
  */
 const getCourseLists = async (req, res, next) => {
     try {
+        // Fetching courses from the database (excluding lecture details)
         const course = await Course.find({}).select('-lectures')
 
+        // Handling case where no courses are found
         if (!course) {
             return next(new AppError('No Course Found', 400))
         }
 
+        // Sending successful response with the list of courses
         res.status(200).json({
             success: true,
             message: "Course List",
             course
         })
     } catch (e) {
+        // Handling internal server error
         return next(new AppError(e.message, 500))
     }
 }
@@ -42,47 +46,45 @@ response with the lectures list. If the course is not found, it sends an error r
 that no course was found. */
 const getLecturesList = async (req, res, next) => {
     try {
-        /* The below code is written in JavaScript. It is using destructuring assignment to extract the
-        `id` property from the `req.params` object. */
+        // Extracting the `id` parameter from the request URL
         const { id } = req.params
 
-        /* The below code is using JavaScript to find a course by its ID. It is using the `findById`
-        method on the `Course` object and passing in the `id` variable as the parameter. The `await`
-        keyword is used to wait for the asynchronous operation to complete before continuing with
-        the code execution. */
+        // Finding the course by its ID
         const course = await Course.findById(id)
 
+        // Handling case where no course is found
         if (!course) {
             return next(new AppError('No Course Found', 400))
         }
 
+        // Sending successful response with the list of lectures
         res.status(200).json({
             success: true,
             message: "Lectures List",
             lectures: course.lectures
         })
     } catch (e) {
+        // Handling internal server error
         return next(new AppError(e.message, 500))
     }
 }
 
 /**
- * The `createCourse` function is an asynchronous function that creates a new course with the provided
- * details and saves it to the database.
- * @returns a JSON response with the following properties:
- * - success: a boolean value indicating whether the course creation was successful or not
- * - message: a string message indicating the status of the course creation
- * - course: an object containing the details of the created course
+ * Creates a new course with the provided details and saves it to the database.
+ * @returns {object} - A JSON response indicating the status of the course creation.
  */
 const createCourse = async (req, res, next) => {
 
     try {
+        // Extracting necessary details from the request body
         const { title, description, category, createdBy, price, discount, skills, language, thumbnail } = req.body
 
+        // Validating required fields
         if (!title || !description || !category || !createdBy || !price || !discount || !skills || !language) {
             return next(new AppError('All Fields are required', 400))
         }
 
+        // Creating a new course in the database
         const course = await Course.create({
             title,
             description,
@@ -98,66 +100,67 @@ const createCourse = async (req, res, next) => {
             }
         })
 
+        // Handling case where course creation fails
         if (!course) {
             return next(new AppError('Course is not created', 500))
         }
 
+        // Uploading thumbnail image to Cloudinary if provided
         if (req.file) {
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: 'lms'
             })
 
+            // Updating course thumbnail details
             if (result) {
                 course.thumbnail.public_id = result.public_id
                 course.thumbnail.secure_url = result.secure_url
             }
+            // Removing temporary file
             fs.rm(`uploads/${req.file.filename}`)
         }
 
+        // Saving the updated course to the database
         await course.save()
 
+        // Sending successful response with the created course details
         res.status(200).json({
             success: true,
             message: "Course created successfully",
             course
         })
     } catch (e) {
+        // Handling internal server error
         return next(new AppError(e.message, 500))
     }
 }
 
 /**
- * The `updateCourse` function updates a course in a database, including handling the upload of a
- * thumbnail image.
- * @returns a JSON response with the following properties:
- * - success: a boolean value indicating whether the course was updated successfully
- * - message: a string message indicating the status of the update
- * - course: the updated course object
+ * Updates a course in the database, including handling the upload of a thumbnail image.
+ * @returns {object} - A JSON response indicating the status of the course update.
  */
 const updateCourse = async (req, res, next) => {
     try {
+        // Extracting necessary details from the request parameters
         const { id } = req.params
-        /* The above code is written in JavaScript. It is using destructuring assignment to extract the
-        `id` property from the `req.params` object. */
 
+        // Finding the course by its ID
         const course = await Course.findById(id)
 
+        // Extracting details from the request body
         const { title, description, category, createdBy, price, discount, skills, language, thumbnail } = req.body
 
-        /* The code `if (!course) { return next(new AppError('No Course Found', 400)) }` is checking if
-        the `course` variable is falsy (null, undefined, false, 0, empty string, etc.). If the
-        `course` variable is falsy, it means that no course was found in the database. In this case,
-        it creates a new `AppError` object with the message 'No Course Found' and a status code of
-        400 (Bad Request), and passes it to the `next` function to handle the error and move to the
-        next middleware function in the request-response cycle. */
+        // Handling case where no course is found
         if (!course) {
             return next(new AppError('No Course Found', 400))
         }
 
+        // Updating course details if provided
         if (title) {
             course.title = await title
         }
 
+        // (Similar updates for other fields...)
         if (description) {
             course.description = await description
         }
@@ -186,92 +189,101 @@ const updateCourse = async (req, res, next) => {
             course.language = await language
         }
 
-        /* This code block is responsible for uploading a thumbnail image for a course to the cloud
-        storage service, Cloudinary. */
+        // Handling thumbnail image upload to Cloudinary if provided
         if (req.file) {
 
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: 'lms'
             })
+
+            // Updating course thumbnail details
             if (result) {
                 course.thumbnail.public_id = result.public_id
                 course.thumbnail.secure_url = result.secure_url
             }
+
+            // Removing temporary file
             fs.rm(`uploads/${req.file.filename}`)
         }
 
-        console.log(course.thumbnail)
-
+        // Saving the updated course to the database
         await course.save()
 
-        console.log(course.thumbnail)
-
+        // Sending successful response with the updated course details
         res.status(200).json({
             success: true,
             message: "Course updated successfully",
             course
         })
     } catch (e) {
+        // Handling internal server error
         return next(new AppError(e.message, 500))
     }
 }
 
 /**
- * The deleteCourse function deletes a course from the database based on the provided id and returns a
- * success message.
- * @returns a JSON response with a success message if the course is successfully deleted.
+ * Deletes a course from the database based on the provided id and returns a success message.
+ * @returns {object} - A JSON response with a success message if the course is successfully deleted.
  */
 const deleteCourse = async (req, res, next) => {
     try {
-        /* The below code is written in JavaScript. It is using destructuring assignment to extract the
-        `id` property from the `req.params` object. */
+        // Extracting the `id` parameter from the request parameters
         const { id } = req.params
 
-        /* The below code is using JavaScript to find a course by its ID. It is using the `findById`
-        method on the `Course` object and passing in the `id` variable as the parameter. The `await`
-        keyword is used to wait for the asynchronous operation to complete before continuing with
-        the code execution. */
+        // Finding the course by its ID
         const course = await Course.findById(id)
 
+        // Handling case where no course is found
         if (!course) {
             return next(new AppError('No Course Found', 400))
         }
 
+        // Deleting the course from the database
         await Course.findByIdAndDelete(id)
 
+        // Sending successful response with a delete message
         res.status(200).json({
             success: true,
             message: "Course deleted successfully"
         })
     } catch (e) {
+        // Handling internal server error
         return next(new AppError(e.message, 500))
     }
 }
 
 /**
- * The `createLecture` function is an asynchronous function that creates a new lecture and adds it to a
- * course in a Learning Management System (LMS).
- * @returns a JSON response with the following properties:
- * - success: a boolean value indicating whether the operation was successful or not
- * - message: a string message indicating the result of the operation
- * - course: the updated course object
+ * Creates a new lecture and adds it to a course in a Learning Management System (LMS).
+ * Returns a JSON response indicating the success of the operation.
+ *
+ * @param {Object} req - The request object containing information about the HTTP request.
+ * @param {Object} res - The response object used to send the response back to the client.
+ * @param {Function} next - Function to pass control to the next middleware.
+ * @returns {JSON} - Success message and details of the updated course with added lectures.
  */
 const createLecture = async (req, res, next) => {
 
     try {
+        // Extract course ID from the request parameters
         const { id } = req.params
+
+        // Extract relevant details from the request body
         const { title, description, lecture } = req.body
 
+        // Find the course by ID
         const course = await Course.findById(id)
 
+        // Check if the course exists
         if (!course) {
             return next(new AppError('No Course Found', 400))
         }
 
+        // Validate required fields
         if (!title, !description) {
             return next(new AppError('All fields are required', 400))
         }
 
+        // Initialize lecture data
         const lectureData = {
             title,
             description,
@@ -281,11 +293,12 @@ const createLecture = async (req, res, next) => {
             }
         }
 
+        // Check if lecture data is successfully created
         if (!lectureData) {
             return next(new AppError('Failed to save lecture', 400))
         }
 
-        /* The below code is handling file uploads in a Node.js application. */
+        // Upload lecture video to Cloudinary if a file is provided
         if (req.file) {
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: 'lms',
@@ -296,56 +309,76 @@ const createLecture = async (req, res, next) => {
                 lectureData.lecture.public_id = result.public_id
                 lectureData.lecture.secure_url = result.secure_url
             }
+            // Remove the uploaded file from the local server
             fs.rm(`uploads/${req.file.filename}`)
         }
 
+        // Add the new lecture to the course and update the lecture count
         course.lectures.push(lectureData)
         course.numberOfLecture = course.lectures.length
 
+        // Save the updated course to the database
         await course.save()
 
+        // Send a success response indicating the addition of lectures to the course
         res.status(200).json({
             success: true,
             message: "Lectures successfully added to the course",
             course
         })
     } catch (e) {
+        // Handle unexpected errors
         return next(new AppError(e.message, 500))
     }
 }
 
 /**
- * The function `updateLecture` updates the details of a lecture in a course, including the title,
- * description, and lecture video.
- * @returns a JSON response with a success status and the updated course object.
+ * Updates the details of a lecture in a course, including the title, description, and lecture video.
+ * Returns a JSON response indicating the success of the operation.
+ *
+ * @param {Object} req - The request object containing information about the HTTP request.
+ * @param {Object} res - The response object used to send the response back to the client.
+ * @param {Function} next - Function to pass control to the next middleware.
+ * @returns {JSON} - Success message and details of the updated course with modified lecture.
  */
 const updateLecture = async (req, res, next) => {
     try {
+        // Extract course and lecture IDs from the request parameters
         const { id } = req.params
         const { lectureId } = req.params
+
+        // Extract relevant details from the request body
+
         const { title, description, lecture } = req.body
 
+        // Find the course by ID
         const course = await Course.findById(id)
 
+        // Check if the course exists
         if (!course) {
             return next(new AppError('No Course Found', 400))
         }
 
+        // Find the index of the lecture in the course's lectures array
         const lectureIndex = course.lectures.findIndex(
             (lecture) => lecture._id.toString() === lectureId.toString())
 
+        // Check if the lecture exists
         if (lectureIndex === -1) {
             return next(new AppError('No Lecture Found', 400))
         }
 
+        // Update lecture details if provided
         if (title) {
             course.lectures[lectureIndex].title = await title
         }
 
+        // Similar updates for other fields...
         if (description) {
             course.lectures[lectureIndex].description = await description
         }
 
+        // Upload new lecture video to Cloudinary if a file is provided
         if (req.file) {
             const result = await cloudinary.v2.uploader.upload(req.file.path, {
                 folder: 'lms',
@@ -356,41 +389,57 @@ const updateLecture = async (req, res, next) => {
                 course.lectures[lectureIndex].lecture.public_id = result.public_id
                 course.lectures[lectureIndex].lecture.secure_url = result.secure_url
             }
+            // Remove the uploaded file from the local server
             fs.rm(`uploads/${req.file.filename}`)
         }
 
+        // Save the updated course to the database
         await course.save()
+
+        // Send a success response with details of the updated course
         res.status(200).json({
             success: true,
             course
         })
     } catch (e) {
+        // Handle unexpected errors
         return next(new AppError(e.message, 500))
     }
 }
 
 /**
- * The `deleteLecture` function is an asynchronous function that deletes a lecture from a course and
- * updates the course's lecture count.
- * @returns a JSON response with the status, message, and updated course object.
+ * Deletes a lecture from a course and updates the course's lecture count.
+ * Returns a JSON response indicating the success of the operation.
+ *
+ * @param {Object} req - The request object containing information about the HTTP request.
+ * @param {Object} res - The response object used to send the response back to the client.
+ * @param {Function} next - Function to pass control to the next middleware.
+ * @returns {JSON} - Success message and details of the updated course after deleting the lecture.
  */
 const deleteLecture = async (req, res, next) => {
     try {
+        // Extract course and lecture IDs from the request parameters
         const { id } = req.params
         const { lectureId } = req.params
 
+        // Find the course by ID
         const course = await Course.findById(id)
+
+        // Check if the course exists
         if (!course) {
             return next(new AppError('No Course Found', 400))
         }
 
+        // Find the index of the lecture in the course's lectures array
         const lectureIndex = course.lectures.findIndex(
             (lecture) => lecture._id.toString() === lectureId.toString())
 
+        // Check if the lecture exists
         if (lectureIndex === -1) {
             return next(new AppError('No Lecture Found', 400))
         }
 
+        // Delete the lecture video from Cloudinary
         await cloudinary.v2.uploader.destroy(
             course.lectures[lectureIndex].lecture.public_id,
             {
@@ -398,23 +447,28 @@ const deleteLecture = async (req, res, next) => {
             }
         );
 
+        // Remove the lecture from the course's lectures array
         course.lectures.splice(lectureIndex, 1)
+
+        // Update the course's lecture count
         course.numberOfLecture = course.lectures.length
 
+        // Save the updated course to the database
         await course.save()
 
+        // Send a success response with details of the updated course
         res.status(200).json({
             status: true,
             message: "Lecture deleted successfully",
             course
         })
     } catch (e) {
+        // Handle unexpected errors
         return next(new AppError(e.message, 500))
     }
 }
 
-/* The below code is exporting a set of functions related to managing courses and lectures. These
-functions include: */
+// Exporting the functions for use in other modules
 export {
     getCourseLists,
     getLecturesList,
