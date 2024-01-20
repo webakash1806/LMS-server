@@ -199,7 +199,7 @@ const allPayments = async (req, res, next) => {
 
         // Retrieving payment subscriptions using Razorpay API
         const subscription = await razorpay.subscriptions.all({
-            count: count ? count : 10,
+            count: count ? count : 100,
             skip: skip ? skip : 0
         })
 
