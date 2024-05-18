@@ -254,9 +254,10 @@ const forgotPassword = async (req, res, next) => {
     await user.save()
 
     // Constructing the reset password URL and sending an email with the reset link
-    const resetPasswordURL = `${process.env.FRONTEND_URL}/zenstudy/reset-password/${resetToken}`
+    const resetPasswordURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
     const subject = 'Reset Password'
-    const message = `Reset your Password by clicking on this link <a href=${resetPasswordURL}/>`
+    const message = `Reset your Password by clicking on this link <a href=${resetPasswordURL}>Reset Password</a>`
+
 
     try {
         await sendEmail(email, subject, message)

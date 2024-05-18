@@ -6,7 +6,7 @@ import path from 'path'
 handling multipart/form-data, which is commonly used for file uploads. */
 const upload = multer({
     dest: 'uploads/',
-    limits: { fileSize: 50 * 1024 * 1024 },
+    limits: { fileSize: 100 * 1024 * 1024 },
     storage: multer.diskStorage({
         destination: 'uploads/',
         filename: (_req, file, cb) => {
