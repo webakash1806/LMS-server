@@ -10,7 +10,8 @@ import {
     forgotPassword,
     resetPassword,
     changePassword,
-    updateProfile
+    updateProfile,
+    markAttendance
 } from "../controllers/user.controller.js";
 
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
@@ -40,6 +41,8 @@ router.post('/reset-password/:resetToken', resetPassword)
 
 // Route for changing the user's password, requires user to be logged in
 router.post('/change-password', isLoggedIn, changePassword)
+
+router.post('/mark-attendance', isLoggedIn, markAttendance)
 
 // Route for updating user profile information with optional avatar upload
 router.put('/update-profile/:id', isLoggedIn, upload.single("avatar"), updateProfile)

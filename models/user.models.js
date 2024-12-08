@@ -3,6 +3,30 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 
+
+const attendanceSchema = new Schema({
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    present: {
+        type: Boolean,
+        default: true
+    },
+    userImage: {
+        publicId: {
+            type: 'String',
+        },
+        secure_url: {
+            type: 'String',
+        }
+    },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+    }
+})
+
 /* 
    Defining a Mongoose schema for a user in a MongoDB database.
 */
@@ -56,6 +80,7 @@ const userSchema = new Schema({
             type: 'String',
         }
     },
+    attendance: [attendanceSchema],
     // Token and expiry for password reset
     forgetPasswordToken: 'String',
     forgetPasswordExpiry: Date,
@@ -113,6 +138,10 @@ userSchema.methods = {
         return resetToken
     }
 }
+
+
+
+
 
 // Creating the User model using the defined schema
 const User = model('User', userSchema)

@@ -162,7 +162,7 @@ const login = async (req, res, next) => {
         // Sending success response to the client
         res.status(200).json({
             success: true,
-            message: 'Login Successfull!',
+            message: 'Login Successful!',
             user
         })
 
@@ -173,6 +173,79 @@ const login = async (req, res, next) => {
     }
 
 }
+
+const markAttendance = async (req, res, next) => {
+    try {
+        console.log(req.user)
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+        if (!user) {
+            return next(new AppError('User not found', 400));
+        }
+        console.log(req.body)
+        const { latitude, longitude } = req.body;
+        const allowedArea = { latitude: 28.556, longitude: 77.3777 };
+        const allowedRange = 0.01;
+
+        console.log(2)
+
+        if (!latitude || !longitude) {
+            return res.status(400).send('Latitude and longitude are required');
+        }
+        console.log(3)
+        if (
+            Math.abs(allowedArea.latitude - latitude) < allowedRange &&
+            Math.abs(allowedArea.longitude - longitude) < allowedRange
+        ) {
+            console.log('Attendance marked successfully:', {
+                latitude,
+                longitude,
+                file: req.file ? req.file.filename : 'No image uploaded',
+            });
+
+            if (req.file) {
+                try {
+                    // Upload file to Cloudinary
+                    const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                        folder: 'lms',
+                        width: 250,
+                        height: 250,
+                        gravity: 'faces',
+                        crop: 'fill',
+                    });
+
+                    if (result) {
+                        user.attendance.push({
+                            date: new Date(),
+                            present: true,
+                            userImage: {
+                                publicId: result.public_id,
+                                secure_url: result.secure_url,
+                            },
+                        });
+
+                        await user.save();
+                        fs.rm(`uploads/${req.file.filename}`);
+                    }
+                } catch (err) {
+                    console.error('Error uploading file to Cloudinary:', err);
+                    return next(new AppError('File could not be uploaded', 500));
+                }
+            }
+
+            return res.status(200).send('Blink detected! Attendance marked successfully.');
+        } else {
+            console.log('Attempted attendance outside allowed area:', {
+                latitude,
+                longitude,
+            });
+            return res.status(401).send('Attempted attendance outside allowed area');
+        }
+    } catch (err) {
+        console.error('Error marking attendance:', err);
+        return next(new AppError(err.message, 500));
+    }
+};
 
 /**
  * The `logout` function logs out a user by clearing the token cookie and returning a success message.
@@ -420,7 +493,10 @@ const updateProfile = async (req, res, next) => {
         // Handling avatar upload using cloudinary if a file is present in the request
         if (req.file) {
             // Destroying the previous avatar in cloudinary
-            await cloudinary.v2.uploader.destroy(user.avatar.publicId)
+            if (user.avatar.publicId) {
+                await cloudinary.v2.uploader.destroy(user.avatar.publicId)
+
+            }
             try {
                 // Uploading the new avatar to cloudinary
                 const result = await cloudinary.v2.uploader.upload(req.file.path, {
@@ -430,6 +506,7 @@ const updateProfile = async (req, res, next) => {
                     gravity: 'faces',
                     crop: 'fill',
                 })
+                console.log(result)
                 // Updating user's avatar information
                 if (result) {
                     user.avatar.publicId = result.public_id
@@ -471,5 +548,6 @@ export {
     forgotPassword,
     resetPassword,
     changePassword,
-    updateProfile
+    updateProfile,
+    markAttendance
 }
